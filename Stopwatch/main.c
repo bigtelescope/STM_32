@@ -39,7 +39,7 @@ static void timers_config(void)
     LL_TIM_SetPrescaler(TIM2, 47999);
     LL_TIM_IC_SetFilter(TIM2, LL_TIM_CHANNEL_CH1, LL_TIM_IC_FILTER_FDIV32_N8);
     LL_TIM_IC_SetPolarity(TIM2, LL_TIM_CHANNEL_CH1,
-                          LL_TIM_IC_POLARITY_FALLING);
+                          LL_TIM_IC_POLARITY_RISING);
 
     LL_TIM_IC_SetActiveInput(TIM2, LL_TIM_CHANNEL_CH1,
                              LL_TIM_ACTIVEINPUT_DIRECTTI);
