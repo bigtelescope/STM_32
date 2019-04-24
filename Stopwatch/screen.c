@@ -4,7 +4,10 @@
 #include "stm32f0xx_ll_bus.h"
 
 void SetDigit(int digit);
+void PrintNumber(int counter, double number);
 
+// Realizes dinamic indication and shows you number 
+// from an argument list
 void PrintNumber(int counter, double number)
 {
   int coma = 0;
@@ -90,6 +93,7 @@ void PrintNumber(int counter, double number)
   }
 }
 
+//Creates a digit on a LED segment
 void SetDigit(int digit)
 {
   switch(digit)
