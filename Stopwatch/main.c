@@ -7,6 +7,12 @@
 #include "stm32f0xx_ll_cortex.h"
 #include "stm32f0xx_ll_tim.h"
 
+#define CHECK_DELAY 150
+#define FREQUENCY_48KHZ 47999
+#define FIRST_PRIOR 1
+
+#define CONVERT_TO_SEC(ARG) (ARG) = (ARG) / 1000
+
 void SetDigit(int digit);
 void PrintNumber(int counter, double number);
 
@@ -36,7 +42,7 @@ static void timers_config(void)
      * Setup timer to capture input mode
      */
     LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM2);
-    LL_TIM_SetPrescaler(TIM2, 47999);
+    LL_TIM_SetPrescaler(TIM2, FREQUENCY_48KHZ);
     LL_TIM_IC_SetFilter(TIM2, LL_TIM_CHANNEL_CH1, LL_TIM_IC_FILTER_FDIV32_N8);
     LL_TIM_IC_SetPolarity(TIM2, LL_TIM_CHANNEL_CH1,
                           LL_TIM_IC_POLARITY_RISING);
@@ -52,23 +58,24 @@ static void timers_config(void)
      * Setup NVIC
      */
     NVIC_EnableIRQ(TIM2_IRQn);
-    NVIC_SetPriority(TIM2_IRQn, 1);
+    NVIC_SetPriority(TIM2_IRQn, FIRST_PRIOR);
 
     LL_TIM_GenerateEvent_UPDATE(TIM2);
 }
 
-static int counter = 0; //counter for dinamic blinking
-static double prev = 0;
-static double next = 0;
-static double time;
+static int counter = 0; // a counter for dinamic blinking
+static double prev = 0; // a moment of a previous pressing
+static double next = 0; // a moment of a present moment
+static double time = 0; // a period between pressing
 
 void TIM2_IRQHandler(void)
 {
     prev = next;
     next = LL_TIM_IC_GetCaptureCH1(TIM2);
-    if((next - prev) > 150)
+    if((next - prev) > CHECK_DELAY)
     {
-        time = (next - prev) / 1000;
+        time = (next - prev);
+        CONVERT_TO_SEC(time);
         LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_8);
         LL_TIM_ClearFlag_CC1(TIM2);
     }
@@ -84,6 +91,7 @@ int main(void)
     {
       PrintNumber(counter, time);
 
+      //counter is considered as a part of a screen
       counter = (counter + 1) % 4;
       delay_5ms();
     }
