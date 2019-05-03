@@ -13,6 +13,9 @@
 
 #define CONVERT_TO_SEC(ARG) (ARG) = (ARG) / 1000
 
+static int counter = 0; // a counter for dinamic blinking
+static double time = 0; // a period between pressing
+
 void SetDigit(int digit);
 void PrintNumber(int counter, double number);
 
@@ -63,13 +66,11 @@ static void timers_config(void)
     LL_TIM_GenerateEvent_UPDATE(TIM2);
 }
 
-static int counter = 0; // a counter for dinamic blinking
-static double prev = 0; // a moment of a previous pressing
-static double next = 0; // a moment of a present moment
-static double time = 0; // a period between pressing
-
 void TIM2_IRQHandler(void)
 {
+    static double prev = 0; // a moment of a previous pressing
+    static double next = 0; // a moment of a present moment
+
     prev = next;
     next = LL_TIM_IC_GetCaptureCH1(TIM2);
     if((next - prev) > CHECK_DELAY)
@@ -81,9 +82,31 @@ void TIM2_IRQHandler(void)
     }
 }
 
+static void systick_config(void)
+{
+    LL_InitTick(48000000, 1000);
+    LL_SYSTICK_EnableIT();
+    NVIC_SetPriority(SysTick_IRQn, 1);
+
+    return;
+}
+
+void SysTick_Handler(void)
+{
+    static int temp = 0;
+    temp = (temp + 1) % 5;
+    counter = (counter + 1) % 4;
+
+    if(temp)
+    {
+        PrintNumber(counter, time);
+        LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_9);
+    }
+}
+
 int main(void)
 {
-    rcc_config();
+    /*rcc_config();
     gpio_config();
     timers_config();
 
@@ -95,5 +118,13 @@ int main(void)
       counter = (counter + 1) % 4;
       delay_5ms();
     }
+    return 0;*/
+
+    rcc_config();
+    gpio_config();
+    timers_config();
+    systick_config();
+
+    while (1);
     return 0;
 }
